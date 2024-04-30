@@ -7,13 +7,15 @@ use std::{
 
 const CONFIG_FILE: &str = ".randstrgen";
 
+/* TODO:
+- --config-path to specify config file */
 fn main() {
-    let args: Vec<String> = env::args().collect();
+    let mut args: Vec<String> = env::args().collect();
+    args.remove(0);
 
     args.iter().for_each(|arg| match arg.as_str() {
-        "-h" | "--help" => println!("Usage: random_string_generator [length]\nArguments:\n  -h, --help    Show this help message\n  -r, --reset   Reset config file"),
         "-r" | "--reset" => reset_config(),
-        _ => {},
+        _ => print_help(),
     });
 
     let length: u32;
@@ -24,18 +26,14 @@ fn main() {
             .parse()
             .expect("Enter a valid number!");
 
-        let save_choice: bool = match stdin("Save your choice? (y/n)")
+        match stdin("Save your choice? (y/n)")
             .trim()
             .to_lowercase()
             .as_str()
         {
-            "y" | "yes" => true,
-            _ => false,
+            "y" | "yes" => save_config(length).expect("Failed to save config"),
+            _ => {}
         };
-
-        if save_choice {
-            save_config(length).expect("Failed to save config");
-        }
     } else {
         length = fs::read_to_string(CONFIG_FILE)
             .expect("Failed to read config file")
@@ -51,10 +49,14 @@ fn main() {
     );
 }
 
+fn print_help() {
+    println!("Usage: random_string_generator [length]\nArguments:\n  -h, --help    Show this help message\n  -r, --reset   Reset config file")
+}
+
 fn save_config(length: u32) -> io::Result<()> {
-    let mut file: File = match !path_exists(CONFIG_FILE) {
-        true => File::create(CONFIG_FILE)?,
-        false => File::open(CONFIG_FILE)?,
+    let mut file: File = match path_exists(CONFIG_FILE) {
+        true => File::open(CONFIG_FILE)?,
+        false => File::create(CONFIG_FILE)?,
     };
 
     let content = format!("{}", length);
@@ -88,13 +90,14 @@ fn stdin(to_print: &str) -> String {
 }
 
 fn generate_random_string(length: u32) -> String {
-    let chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let char_as_bytes = chars.as_bytes();
+    let chars: String =
+        String::from("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
+    let chars_vec: Vec<char> = chars.chars().collect();
     let mut random_string = String::new();
 
     for _ in 0..length {
         let random_number = rand::thread_rng().gen_range(0..chars.len());
-        let char = char_as_bytes[random_number] as char;
+        let char = *chars_vec.get(random_number).unwrap();
 
         random_string.push(char)
     }
