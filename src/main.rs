@@ -26,13 +26,10 @@ fn main() {
             .parse()
             .expect("Enter a valid number!");
 
-        match stdin("Save your choice? (y/n)")
-            .trim()
-            .to_lowercase()
-            .as_str()
-        {
-            "y" | "yes" => save_config(length).expect("Failed to save config"),
-            _ => {}
+        let save_choice = stdin("Save your choice? (y/n)").trim().to_lowercase();
+
+        if save_choice.eq("y") || save_choice.eq("yes") {
+            save_config(length).expect("Failed to save config")
         };
     } else {
         length = fs::read_to_string(CONFIG_FILE)
@@ -97,7 +94,7 @@ fn generate_random_string(length: u32) -> String {
 
     for _ in 0..length {
         let random_number = rand::thread_rng().gen_range(0..chars.len());
-        let char = *chars_vec.get(random_number).unwrap();
+        let char = chars_vec.get(random_number).unwrap().to_owned();
 
         random_string.push(char)
     }
