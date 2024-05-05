@@ -1,92 +1,26 @@
+use clap::Parser;
 use rand::Rng;
-use std::{
-    env,
-    fs::{self, File},
-    io::{self, prelude::*},
-};
+use std::format as fmt;
+use std::fs::File;
+use std::io::prelude::*;
+use std::path::PathBuf;
 
-const CONFIG_FILE: &str = ".randstrgen";
+#[derive(Parser, Clone, Debug)]
+#[command(version="0.1.0", about="random_string_generator", long_about = None)]
+struct Options {
+    #[arg(short = 'l', long = "length", help = "Length of the generated string")]
+    length: u16,
+}
 
-/* TODO:
-- --config-path to specify config file */
 fn main() {
-    let mut args: Vec<String> = env::args().collect();
-    args.remove(0);
+    let args = Options::parse();
 
-    args.iter().for_each(|arg| match arg.as_str() {
-        "-r" | "--reset" => reset_config(),
-        _ => print_help(),
-    });
+    let random_string = generate_random_string(args.length);
 
-    let length: u32;
-
-    if !path_exists(CONFIG_FILE) {
-        length = stdin("Enter string length")
-            .trim()
-            .parse()
-            .expect("Enter a valid number!");
-
-        let save_choice = stdin("Save your choice? (y/n)").trim().to_lowercase();
-
-        if save_choice.eq("y") || save_choice.eq("yes") {
-            save_config(length).expect("Failed to save config")
-        };
-    } else {
-        length = fs::read_to_string(CONFIG_FILE)
-            .expect("Failed to read config file")
-            .trim()
-            .parse()
-            .expect("Failed to parse config file");
-    }
-
-    println!(
-        "Generated string({}): {}",
-        length,
-        generate_random_string(length)
-    );
+    println!("{}", random_string);
 }
 
-fn print_help() {
-    println!("Usage: random_string_generator [length]\nArguments:\n  -h, --help    Show this help message\n  -r, --reset   Reset config file")
-}
-
-fn save_config(length: u32) -> io::Result<()> {
-    let mut file: File = match path_exists(CONFIG_FILE) {
-        true => File::open(CONFIG_FILE)?,
-        false => File::create(CONFIG_FILE)?,
-    };
-
-    let content = format!("{}", length);
-
-    file.write_all(content.as_bytes())
-        .expect("Failed to write to file");
-
-    Ok(())
-}
-
-fn reset_config() {
-    if !path_exists(CONFIG_FILE) {
-        return;
-    }
-    fs::remove_file(CONFIG_FILE).expect("Failed to remove config file");
-}
-
-fn path_exists(path: &str) -> bool {
-    fs::metadata(path).is_ok()
-}
-
-fn stdin(to_print: &str) -> String {
-    let mut buffer = String::new();
-
-    println!("{}", to_print);
-    io::stdin()
-        .read_line(&mut buffer)
-        .expect("Failed to read from stdin");
-
-    buffer
-}
-
-fn generate_random_string(length: u32) -> String {
+fn generate_random_string(length: u16) -> String {
     let chars: String =
         String::from("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
     let chars_vec: Vec<char> = chars.chars().collect();
@@ -100,4 +34,16 @@ fn generate_random_string(length: u32) -> String {
     }
 
     random_string
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_generate_random_string() {
+        let random_string = generate_random_string(10);
+        dbg!(&random_string.len());
+        assert_eq!(random_string.len(), 10);
+    }
 }
