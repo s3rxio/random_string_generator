@@ -10,12 +10,27 @@ use std::path::PathBuf;
 struct Options {
     #[arg(short = 'l', long = "length", help = "Length of the generated string")]
     length: u16,
+
+    #[arg(short = 'o', long = "output", help = "Path to the output file")]
+    output: Option<PathBuf>,
 }
 
 fn main() {
     let args = Options::parse();
 
     let random_string = generate_random_string(args.length);
+
+    if !args.output.is_none() {
+        let path = args.output.unwrap();
+
+        let mut file = File::create(&path)
+            .expect(fmt!("Unable to create file at {}", path.display()).as_str());
+
+        file.write_all(random_string.as_bytes())
+            .expect("Unable to write data to file");
+
+        return;
+    }
 
     println!("{}", random_string);
 }
