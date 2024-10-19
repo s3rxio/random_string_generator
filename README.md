@@ -18,8 +18,6 @@ sudo cp target/release/random_string_generator /usr/local/bin
 
 ## Usage
 
-**Attention**: Run the script in the directory with the configuration file
-
 ```bash
-random_string_generator [-h | --help] [-r | --reset]
+random_string_generator [-l | --length] <LENGTH> [-o? | --output?] <OUTPUT>
 ```
