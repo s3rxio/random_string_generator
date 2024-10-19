@@ -1,10 +1,10 @@
 mod error;
 
 use clap::Parser;
-use error::{Error, Result};
+use error::Result;
 use rand::seq::SliceRandom;
 use std::fs::File;
-use std::io::prelude::*;
+use std::io::Write;
 use std::path::PathBuf;
 
 #[derive(Parser, Clone, Debug)]
